@@ -8,7 +8,7 @@ class MainScreen(QtWidgets.QMainWindow):
         self.login_screen = login_screen  # Save the login screen reference
         
         # Connect logout button click event to the logout function
-        self.logoutButton.clicked.connect(self.logout)
+        self.btnLogout.clicked.connect(self.logout)
 
     def logout(self):
         self.login_screen.show()  # Show the login screen again

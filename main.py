@@ -16,7 +16,7 @@ class LoginScreen(QtWidgets.QMainWindow):
         username = self.txtUserName.text()
         password = self.txtPassword.text()
 
-        if username == "" and password == "":
+        if username == "admin" and password == "password":
             from mainScreen import MainScreen  # Import here to avoid circular import
             self.main = MainScreen(self)  # Pass the current instance
             self.main.show()
