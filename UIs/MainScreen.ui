@@ -400,7 +400,7 @@ padding-left:3px;
 }</string>
                </property>
                <property name="currentIndex">
-                <number>4</number>
+                <number>2</number>
                </property>
                <widget class="QWidget" name="page">
                 <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -1058,7 +1058,7 @@ font: 14pt ;
                        <number>12</number>
                       </property>
                       <item row="2" column="2" alignment="Qt::AlignHCenter">
-                       <widget class="QCheckBox" name="checkBox">
+                       <widget class="QCheckBox" name="isAdminCheckBox">
                         <property name="text">
                          <string/>
                         </property>
@@ -1072,7 +1072,7 @@ font: 14pt ;
                        </widget>
                       </item>
                       <item row="1" column="2">
-                       <widget class="QLineEdit" name="lineEdit_3">
+                       <widget class="QLineEdit" name="txtPassword">
                         <property name="minimumSize">
                          <size>
                           <width>0</width>
@@ -1082,7 +1082,7 @@ font: 14pt ;
                        </widget>
                       </item>
                       <item row="0" column="2">
-                       <widget class="QLineEdit" name="lineEdit_2">
+                       <widget class="QLineEdit" name="txtUsername">
                         <property name="minimumSize">
                          <size>
                           <width>0</width>
@@ -1123,6 +1123,30 @@ font: 14pt ;
                    </layout>
                   </widget>
                  </item>
+                 <item>
+                  <widget class="QLabel" name="lblError">
+                   <property name="font">
+                    <font>
+                     <family>Bahnschrift SemiCondensed</family>
+                     <pointsize>9</pointsize>
+                     <weight>50</weight>
+                     <italic>false</italic>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: 8.5pt &quot;Bahnschrift SemiCondensed&quot;;
+margin-left:0px;
+color:red;</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
                  <item alignment="Qt::AlignHCenter">
                   <widget class="QFrame" name="frame_15">
                    <property name="minimumSize">
@@ -1148,7 +1172,7 @@ font: 14pt ;
                      <number>0</number>
                     </property>
                     <item>
-                     <widget class="QPushButton" name="btnAddYser">
+                     <widget class="QPushButton" name="btnAddNewUser">
                       <property name="minimumSize">
                        <size>
                         <width>120</width>
