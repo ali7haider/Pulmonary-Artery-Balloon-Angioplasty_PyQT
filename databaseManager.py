@@ -26,12 +26,17 @@ class DatabaseManager:
     
     def get_user_by_credentials(self, username, password):
         try:
+            # Set the row factory to sqlite3.Row to access columns by name
+            self.cursor.row_factory = sqlite3.Row
+            
             # Query the database for a user with matching username and password
             self.cursor.execute('''SELECT * FROM users WHERE username = ? AND password = ? AND isActive = 1''', (username, password))
             user = self.cursor.fetchone()  # Fetch one result (user data)
+
             return user  # Return user data or None if no match found
         except sqlite3.Error as e:
             raise Exception(f"Error retrieving user by credentials: {e}")
+
     
     def check_username_exists(self, username):
         try:

@@ -352,7 +352,7 @@ QPushButton:pressed {
     padding-left: 14px;                /* Slight movement for press effect */
     padding-top: 6px;                  /* Slight movement for press effect */
 }
-#btnReset
+#btnResetSensor
 {
 
 background-color: #986262;
@@ -361,7 +361,7 @@ border-radius: 4px;
 font: 10pt &quot;Bahnschrift SemiCondensed&quot;;
 
 }
-#btnReset::hover
+#btnResetSensor::hover
 {
 background-color:#AE4D4D;
 
@@ -400,7 +400,7 @@ padding-left:3px;
 }</string>
                </property>
                <property name="currentIndex">
-                <number>2</number>
+                <number>0</number>
                </property>
                <widget class="QWidget" name="page">
                 <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -527,7 +527,13 @@ font: 14pt ;
                           <number>6</number>
                          </property>
                          <item row="1" column="3">
-                          <widget class="QLabel" name="label_4">
+                          <widget class="QLabel" name="lblConnectStatus">
+                           <property name="minimumSize">
+                            <size>
+                             <width>130</width>
+                             <height>0</height>
+                            </size>
+                           </property>
                            <property name="maximumSize">
                             <size>
                              <width>100</width>
@@ -543,7 +549,7 @@ font: 14pt ;
                           </widget>
                          </item>
                          <item row="2" column="0">
-                          <widget class="QPushButton" name="pushButton_7">
+                          <widget class="QPushButton" name="btnTestPressure">
                            <property name="maximumSize">
                             <size>
                              <width>16777215</width>
@@ -559,7 +565,7 @@ font: 14pt ;
                           </widget>
                          </item>
                          <item row="1" column="4">
-                          <widget class="QPushButton" name="btnReset">
+                          <widget class="QPushButton" name="btnResetSensor">
                            <property name="minimumSize">
                             <size>
                              <width>120</width>
@@ -584,7 +590,7 @@ font: 14pt ;
                           </widget>
                          </item>
                          <item row="3" column="1">
-                          <widget class="QLabel" name="label_2">
+                          <widget class="QLabel" name="txtXrayOnVal">
                            <property name="styleSheet">
                             <string notr="true">color:green;</string>
                            </property>
@@ -594,7 +600,7 @@ font: 14pt ;
                           </widget>
                          </item>
                          <item row="1" column="1">
-                          <widget class="QPushButton" name="pushButton_6">
+                          <widget class="QPushButton" name="btnConnectSensor">
                            <property name="minimumSize">
                             <size>
                              <width>120</width>
@@ -650,7 +656,7 @@ font: 14pt ;
                              </widget>
                             </item>
                             <item>
-                             <widget class="QLineEdit" name="lineEdit">
+                             <widget class="QLineEdit" name="txtPortNum">
                               <property name="minimumSize">
                                <size>
                                 <width>150</width>
@@ -663,13 +669,16 @@ font: 14pt ;
                                 <height>16777215</height>
                                </size>
                               </property>
+                              <property name="text">
+                               <string>COM3</string>
+                              </property>
                              </widget>
                             </item>
                            </layout>
                           </widget>
                          </item>
                          <item row="2" column="1">
-                          <widget class="QLabel" name="label_5">
+                          <widget class="QLabel" name="txtPressureVal">
                            <property name="styleSheet">
                             <string notr="true">color:green;</string>
                            </property>
@@ -679,7 +688,7 @@ font: 14pt ;
                           </widget>
                          </item>
                          <item row="3" column="0">
-                          <widget class="QPushButton" name="pushButton_8">
+                          <widget class="QPushButton" name="btnCheckXrayOpen">
                            <property name="cursor">
                             <cursorShape>PointingHandCursor</cursorShape>
                            </property>
@@ -689,17 +698,20 @@ font: 14pt ;
                           </widget>
                          </item>
                          <item row="6" column="1">
-                          <widget class="QLabel" name="label_9">
+                          <widget class="QLabel" name="txtEvaluationResult">
                            <property name="styleSheet">
                             <string notr="true">color:blue;</string>
                            </property>
                            <property name="text">
                             <string>Evalution Result</string>
                            </property>
+                           <property name="wordWrap">
+                            <bool>true</bool>
+                           </property>
                           </widget>
                          </item>
                          <item row="5" column="0">
-                          <widget class="QPushButton" name="pushButton_10">
+                          <widget class="QPushButton" name="btnDisplayBodyPos">
                            <property name="cursor">
                             <cursorShape>PointingHandCursor</cursorShape>
                            </property>
@@ -709,7 +721,7 @@ font: 14pt ;
                           </widget>
                          </item>
                          <item row="4" column="0">
-                          <widget class="QPushButton" name="pushButton_9">
+                          <widget class="QPushButton" name="btnCheckXrayClose">
                            <property name="cursor">
                             <cursorShape>PointingHandCursor</cursorShape>
                            </property>
@@ -719,7 +731,7 @@ font: 14pt ;
                           </widget>
                          </item>
                          <item row="6" column="0">
-                          <widget class="QPushButton" name="pushButton_11">
+                          <widget class="QPushButton" name="btnEvaluatePressure">
                            <property name="cursor">
                             <cursorShape>PointingHandCursor</cursorShape>
                            </property>
@@ -742,7 +754,7 @@ font: 14pt ;
                           </spacer>
                          </item>
                          <item row="4" column="1">
-                          <widget class="QLabel" name="label_7">
+                          <widget class="QLabel" name="txtXrayOffVal">
                            <property name="styleSheet">
                             <string notr="true">color:green;</string>
                            </property>
@@ -752,7 +764,7 @@ font: 14pt ;
                           </widget>
                          </item>
                          <item row="5" column="1">
-                          <widget class="QLabel" name="label_8">
+                          <widget class="QLabel" name="lblPositionVal">
                            <property name="styleSheet">
                             <string notr="true">color:green;</string>
                            </property>
@@ -794,12 +806,15 @@ font: 14pt ;
                      <number>0</number>
                     </property>
                     <item>
-                     <widget class="QLabel" name="label_10">
+                     <widget class="QLabel" name="lblPressureGraph">
                       <property name="styleSheet">
                        <string notr="true"/>
                       </property>
                       <property name="text">
-                       <string>Pressure Graph Here</string>
+                       <string/>
+                      </property>
+                      <property name="scaledContents">
+                       <bool>true</bool>
                       </property>
                       <property name="alignment">
                        <set>Qt::AlignCenter</set>

@@ -21,14 +21,26 @@ class LoginScreen(QtWidgets.QMainWindow):
 
         # Query the database for the entered username and password
         user = self.db_manager.get_user_by_credentials(username, password)
-
         if user:  # If user is found in the database
-            from mainScreen import MainScreen  # Import here to avoid circular import
-            self.main = MainScreen(self,self.db_manager, user)  # Pass DatabaseManager and user data
-            self.main.show()
-            self.close()
+            self.txtUserName.clear()
+            self.txtPassword.clear()
+
+            is_admin = user["isAdmin"] if user else False  # Check if user is an admin, defaulting to False
+            
+            # Open different screens based on admin status
+            if is_admin:
+                from adminScreen import AdminScreen  # Import the Admin screen
+                self.admin_screen = AdminScreen(self, self.db_manager, user)  # Pass necessary data
+                self.admin_screen.show()
+            else:
+                from adminScreen import AdminScreen  # Import the main user screen
+                self.main_screen = AdminScreen(self, self.db_manager, user)  # Pass necessary data
+                self.main_screen.show()
+            
+            self.close()  # Close the login window after opening the appropriate screen
         else:
             self.lblError.setText("Invalid username or password")
+
 
 # Main application
 app = QtWidgets.QApplication(sys.argv)

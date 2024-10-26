@@ -1,16 +1,27 @@
 import sys
 from PyQt5 import uic
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow,QTableWidgetItem,QHeaderView,QPushButton,QMessageBox,QDialog
+from PyQt5.QtWidgets import QMainWindow,QApplication,QTableWidgetItem,QHeaderView,QPushButton,QMessageBox,QDialog
 from editUser_ui import Ui_Dialog
+from user_management import UserManager  # Import the UserManager class
+from sensor_management import SensorManager  # Import the SensorPage class
 
-class MainScreen(QMainWindow):
-    def __init__(self, login_screen,db_manager, user):
-        super(MainScreen, self).__init__()
+class AdminScreen(QMainWindow):
+    def __init__(self, login_screen=None,db_manager=None, user=None):
+        super(AdminScreen, self).__init__()
         uic.loadUi('UIs/MainScreen.ui', self)  # Load the main.ui file
         self.login_screen = login_screen  # Save the login screen reference
         self.db_manager = db_manager  # Store the DatabaseManager instance
         self.user = user  # Store the logged-in user data
+        self.user_manager = UserManager(db_manager)  # Initialize UserManager
+        self.sensor_manager = SensorManager(self)  # Instantiate the sensor page logic
+
+
+        self.video_path = None  # Path to the video file
+        self.settings_data = {}  # Dictionary to hold settings data
+        self.video_frame = 0  # Current video frame index
+        self.is_admin = user["isAdmin"] if user else False  # Determine if user is admin
+        self.ax=0
         self.stackedWidget.setCurrentIndex(0)  # Assuming stackedWidget is the object name in .ui file
 
         # Connect buttons to change pages in the stacked widget
@@ -19,7 +30,6 @@ class MainScreen(QMainWindow):
         self.btnUserManagement.clicked.connect(lambda: self.change_page(2))  # Button to show page 3
         self.btnStartTraining.clicked.connect(lambda: self.change_page(3))  # Button to show page 3
         self.btnUserProfile.clicked.connect(lambda: self.change_page(4))  # Button to show page 3
-
         # Connect logout button click event to the logout function
         self.btnLogout.clicked.connect(self.logout)
 
@@ -28,43 +38,34 @@ class MainScreen(QMainWindow):
 
         self.btnUserManagement.clicked.connect(self.load_user_data_from_database)  # Button to show page 3
 
+
+        # Connect buttons for sensor management
+        self.btnConnectSensor.clicked.connect(lambda: self.sensor_manager.connect_to_sensor(self.txtPortNum.text()))
+        self.btnResetSensor.clicked.connect(self.sensor_manager.reset_all)
+        self.btnTestPressure.clicked.connect(self.sensor_manager.test_pressure)  # Example sensor type
+        self.btnCheckXrayOpen.clicked.connect(self.sensor_manager.test_xray_on)  # Example sensor type
+        self.btnCheckXrayClose.clicked.connect(self.sensor_manager.test_xray_off)  # Example sensor type
+        self.btnDisplayBodyPos.clicked.connect(self.sensor_manager.show_position)  # Example sensor type
+        self.btnEvaluatePressure.clicked.connect(self.sensor_manager.evaluate_pressure)  # Example sensor type
+        self.sensor_manager.update_pressure_plot()
+        # self.btnEvaluatePressure.clicked.connect(self.sensor_page_logic.evaluate_pressure)
+        # self.btnSetReferenceCurve.clicked.connect(self.sensor_page_logic.set_reference_curve)
+
     def add_user(self):
-        """Add a new user to the database when btnAddUser is clicked."""
-        try:
-            # Get data from input fields
-            username = self.txtUsername.text()
-            password = self.txtPassword.text()
-            is_admin = self.isAdminCheckBox.isChecked()  # True if checked, False otherwise
+        username = self.txtUsername.text()
+        password = self.txtPassword.text()
+        is_admin = self.isAdminCheckBox.isChecked()
 
-            # Validate the input
-            if not username or not password:
-                self.lblError.setText("Username and Password cannot be empty.")
-                return
-
-            # Try to insert the user into the database
-            if not self.db_manager.insert_user(username, password, isAdmin=int(is_admin)):
-                self.lblError.setText(f"Error: Username '{username}' already exists.")
-            else:
-                self.lblError.setText("")
-                self.show_success_message(f"User '{username}' added successfully.")
-
-                self.clear_input_fields()  # Clear input fields after successful addition
-
-                # Reload the user data in the table to show the newly added user
-                self.load_user_data_from_database()
-
-        except AttributeError as e:
-            print(f"Error: {e}")
-            self.lblError.setText("Error: One or more UI elements are not found.")
+        success, message = self.user_manager.add_user(username, password, is_admin)  # Use UserManager
+        self.lblError.setText(message)
+        if success:
+            QMessageBox.information(self, "Success", "User Added successfully.")
+            self.clear_input_fields()
+            self.lblError.setText("")
+            self.load_user_data_from_database()  # Reload user data
 
     def load_user_data_from_database(self):
-        """
-        Fetch user data from the database using DatabaseManager and load it into the table.
-        """
-        # Fetch data using the DatabaseManager
-        columns, rows = self.db_manager.fetch_all_users()
-
-        # Add extra columns for "Edit" and "Delete" actions
+        columns, rows = self.user_manager.load_user_data()  # Use UserManager
         columns = ['ID', 'Username', 'Password', 'Admin', 'Edit', 'Delete']
         self.load_data_to_table(columns, rows)
 
@@ -132,14 +133,9 @@ class MainScreen(QMainWindow):
         if confirmation:
             print("Deleting row:", row)
             # Retrieve the ID of the row to be deleted
-            user_id = int(self.userDataTable.item(row, 0).text())  # Assuming the ID is in the first column
-            
-            # Perform deletion operation using the user_id
-            if self.db_manager.deactivate_user(user_id):
-                # If deletion was successful, remove the row from the table
+            user_id = int(self.userDataTable.item(row, 0).text())
+            if self.user_manager.delete_user(user_id):  # Use UserManager
                 self.userDataTable.removeRow(row)
-            else:
-                self.show_error_message("Error deleting user from the database.")
     
     def edit_row(self, row):
         # Implement logic to edit the selected row
@@ -155,7 +151,7 @@ class MainScreen(QMainWindow):
             return
 
         # Fetch the data of the current user from the database based on the retrieved ID
-        row_data = self.db_manager.fetch_user_by_id(row_id)
+        row_data = self.user_manager.fetch_user_by_id(row_id)
 
         if row_data is None:
             print("Error: No user found with this ID or user is inactive.")
@@ -163,7 +159,7 @@ class MainScreen(QMainWindow):
 
         # Instantiate Ui_Dialog and pass it to MyDialog
         dialog_ui = Ui_Dialog()  # Assuming Ui_Dialog is defined somewhere
-        self.dialog = EditUser(dialog_ui, row_data,  self.db_manager,self)  # EditUser should handle the edit dialog
+        self.dialog = EditUser(dialog_ui, row_data,  self.user_manager,self)  # EditUser should handle the edit dialog
         self.dialog.exec_()
         self.load_user_data_from_database()
 
@@ -217,13 +213,12 @@ class MainScreen(QMainWindow):
 from PyQt5.QtWidgets import QDialog, QMessageBox
 
 class EditUser(QDialog):
-    def __init__(self, ui, row_data, db_manager, parent=None):
+    def __init__(self, ui, row_data, user_manager, parent=None):
         super(EditUser, self).__init__(parent)
         self.ui = ui
         self.ui.setupUi(self)
         self.row_data = row_data
-        self.db_manager = db_manager
-        
+        self.user_manager = user_manager
         # Set initial values in the UI
         self.set_initial_values()
 
@@ -257,7 +252,7 @@ class EditUser(QDialog):
 
         # Call the update_user function from db_manager
         try:
-            success = self.db_manager.update_user(user_id, username, password, int(is_admin))  # Update the user in the database
+            success = self.user_manager.edit_user(user_id, username, password, int(is_admin))  # Update the user in the database
 
             if success:
                 QMessageBox.information(self, "Success", "User details updated successfully.")
@@ -266,3 +261,8 @@ class EditUser(QDialog):
                 QMessageBox.warning(self, "Error", "Failed to update user details. Please try again.")
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))  # Show error message if something goes wrong
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = AdminScreen()
+    window.show()
+    sys.exit(app.exec_())
