@@ -1,16 +1,11 @@
 import numpy as np
-import random
 import time
 import serial
 from scipy.integrate import simps
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt
-from io import BytesIO
 import os
+
 class SensorManager:
     def __init__(self, parent):
         self.parent = parent
@@ -147,7 +142,10 @@ class SensorManager:
         ax.set_title("Pressure Data (Gaussian Distribution)")
         ax.set_xlabel("Time")
         ax.set_ylabel("Pressure")
-        ax.legend()
+        # Add a legend if there are any labels to display
+        handles, labels = ax.get_legend_handles_labels()
+        if handles:  # Only create a legend if there are handles
+            ax.legend(handles, labels)
 
         # Save the figure as an image
         image_path = 'pressure.png'
