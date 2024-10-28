@@ -126,7 +126,7 @@ class SensorManager:
 
     def update_pressure_plot(self):
         # Create a new figure and axis for the pressure plot
-        fig, ax = plt.subplots(figsize=(8, 6))  # Set a larger figure size for better resolution
+        fig, ax = plt.subplots()  # Set a larger figure size for better resolution
 
         # Plot reference curve if available
         if len(self.reference_curve) > 0:

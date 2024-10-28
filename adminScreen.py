@@ -5,16 +5,17 @@ from PyQt5.QtWidgets import QMainWindow,QApplication,QTableWidgetItem,QHeaderVie
 from editUser_ui import Ui_Dialog
 from user_management import UserManager  # Import the UserManager class
 from sensor_management import SensorManager  # Import the SensorPage class
-
+from camera_management import CameraManager
 class AdminScreen(QMainWindow):
     def __init__(self, login_screen=None,db_manager=None, user=None):
         super(AdminScreen, self).__init__()
-        uic.loadUi('UIs/MainScreen.ui', self)  # Load the main.ui file
+        uic.loadUi('UIs/adminScreen.ui', self)  # Load the main.ui file
         self.login_screen = login_screen  # Save the login screen reference
         self.db_manager = db_manager  # Store the DatabaseManager instance
         self.user = user  # Store the logged-in user data
         self.user_manager = UserManager(db_manager)  # Initialize UserManager
         self.sensor_manager = SensorManager(self)  # Instantiate the sensor page logic
+        self.camera_manager = CameraManager(self)  # Instantiate the camera manager
 
 
         self.video_path = None  # Path to the video file
@@ -48,8 +49,17 @@ class AdminScreen(QMainWindow):
         self.btnDisplayBodyPos.clicked.connect(self.sensor_manager.show_position)  # Example sensor type
         self.btnEvaluatePressure.clicked.connect(self.sensor_manager.evaluate_pressure)  # Example sensor type
         self.sensor_manager.update_pressure_plot()
-        # self.btnEvaluatePressure.clicked.connect(self.sensor_page_logic.evaluate_pressure)
-        # self.btnSetReferenceCurve.clicked.connect(self.sensor_page_logic.set_reference_curve)
+
+
+        # Connect buttons for camera management
+        self.btnConnectCamera.clicked.connect(self.camera_manager.connect_camera)
+        self.btnPlotLines.clicked.connect(self.camera_manager.plot_lines)
+        self.btnLoadVideo.clicked.connect(self.camera_manager.load_video)
+        self.btnCircleCallibaration.clicked.connect(self.camera_manager.calibrate_circle)
+        self.btnInsertTubeMonitor.clicked.connect(self.camera_manager.update_frame)
+        self.btnInsertWireMonitor.clicked.connect(self.camera_manager.update_frame)
+        self.btnInsertBallonMonitor.clicked.connect(self.camera_manager.update_frame)
+
 
     def add_user(self):
         username = self.txtUsername.text()
