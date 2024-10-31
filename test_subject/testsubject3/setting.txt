@@ -1,0 +1,2 @@
+10 C1 10 2 please insert tube 10 cm in 2 seconds
+40 C2 10 2 please insert wire 10 cm in 2 seconds

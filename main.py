@@ -33,8 +33,8 @@ class LoginScreen(QtWidgets.QMainWindow):
                 self.admin_screen = AdminScreen(self, self.db_manager, user)  # Pass necessary data
                 self.admin_screen.show()
             else:
-                from userScreen import userScreen  # Import the main user screen
-                self.main_screen = userScreen(self, self.db_manager, user)  # Pass necessary data
+                from userScreen import UserScreen  # Import the main user screen
+                self.main_screen = UserScreen(self, self.db_manager, user)  # Pass necessary data
                 self.main_screen.show()
             
             self.close()  # Close the login window after opening the appropriate screen

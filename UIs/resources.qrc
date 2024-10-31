@@ -1,5 +1,13 @@
 <RCC>
   <qresource prefix="images">
+    <file>images/icon_settings.png</file>
+    <file>images/cil-media-stop.png</file>
+    <file>images/cil-media-step-backward.png</file>
+    <file>images/cil-media-step-forward.png</file>
+    <file>images/cil-camera.png</file>
+    <file>images/cil-circle.png</file>
+    <file>images/cil-media-pause.png</file>
+    <file>images/cil-media-play.png</file>
     <file>images/cil-check-alt.png</file>
     <file>images/delete_icon.png</file>
     <file>images/edit_icons.png</file>
