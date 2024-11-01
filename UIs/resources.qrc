@@ -1,5 +1,26 @@
 <RCC>
   <qresource prefix="images">
+    <file>images/cil-camera.png</file>
+    <file>images/cil-check-alt.png</file>
+    <file>images/cil-circle.png</file>
+    <file>images/cil-media-pause.png</file>
+    <file>images/cil-media-play.png</file>
+    <file>images/cil-media-step-backward.png</file>
+    <file>images/cil-media-step-forward.png</file>
+    <file>images/cil-media-stop.png</file>
+    <file>images/delete_icon.png</file>
+    <file>images/edit_icons.png</file>
+    <file>images/icon_settings.png</file>
+    <file>images/icons8-camera-25.png</file>
+    <file>images/icons8-end-25.png</file>
+    <file>images/icons8-pause-25.png</file>
+    <file>images/icons8-play-25.png</file>
+    <file>images/icons8-record-25.png</file>
+    <file>images/icons8-skip-to-start-25.png</file>
+    <file>images/icons8-stop-25.png</file>
+    <file>images/logo.png</file>
+    <file>images/icons8-camera-25.png</file>
+    <file>images/icons8-record-25.png</file>
     <file>images/icon_settings.png</file>
     <file>images/cil-media-stop.png</file>
     <file>images/cil-media-step-backward.png</file>

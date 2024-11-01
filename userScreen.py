@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem, QPushButton, QMessage
 import resources_rc
 from PyQt5.QtCore import Qt,QEvent
 from PyQt5.QtGui import QFont
-
+from video_player import VideoPlayer
 class UserScreen(QMainWindow):
     def __init__(self, login_screen=None, db_manager=None, user=None):
         super(UserScreen, self).__init__()
@@ -226,6 +226,19 @@ class UserScreen(QMainWindow):
         try:
             video_path = None
             settings_file = None
+            settings_data = {}
+            info_file = os.path.join(folder_path, "test_subject_info.txt")
+            test_category='default'
+            if os.path.exists(info_file):
+                # Load info data from test_subject_info.txt
+                with open(info_file, "r") as file:
+                    info_content = file.read().splitlines()
+                    if len(info_content) >= 3:
+                        test_category, subject, instrument = info_content[:3]
+                        date = ""  # Date initially empty
+                        score = ""  # MyScore initially empty
+            # current_row = self.trainingDataTable.currentRow()
+            # test_category = self.trainingDataTable.item(current_row, 0).text()  # Assuming first column is test category
 
             # Find a video file and any .txt settings file in the folder
             for file_name in os.listdir(folder_path):
@@ -237,9 +250,12 @@ class UserScreen(QMainWindow):
                     print(f"Settings file path: {settings_file}")
 
             if video_path and settings_file:
-                print(f"Starting training for video: {video_path}")
-                print(f"Using settings from: {settings_file}")
-                # TODO: Add logic to start video playback with the settings
+                # Load settings from the .txt file (assuming JSON-like format in .txt)
+                settings_data = self.load_settings(settings_file)  # or other format parsing as needed
+
+                # Initialize and show VideoPlayer with video path and settings data
+                self.video_player = VideoPlayer(video_path, settings_data,self.user,test_category)
+                self.video_player.show()
             else:
                 print("Video or settings file not found.")
                 QMessageBox.warning(self, "Error", "Video or settings file not found.")
