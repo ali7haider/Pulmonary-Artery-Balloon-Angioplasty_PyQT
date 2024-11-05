@@ -208,7 +208,7 @@ class VideoPlayer(QMainWindow):
             self.timer.stop()
             self.cap.release()
             self.display_message("Video Finished")
-            self.btnPlayPause.setIcon(QIcon(":/images/images/cil-media-play.png"))
+            self.btnPlayPause.setIcon(QIcon(":/images/images/icons8-play-25.png"))
             return
 
         frame = cv2.resize(frame, (720, 480))

@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import uic
-from PyQt5.QtWidgets import QMainWindow,QApplication,QTableWidgetItem,QVBoxLayout,QGridLayout,QListWidget,QHeaderView,QPushButton,QMessageBox,QWidget,QHBoxLayout,QLabel
+from PyQt5.QtWidgets import QMainWindow,QApplication,QTreeWidgetItem,QTreeWidget,QTableWidgetItem,QVBoxLayout,QGridLayout,QListWidget,QHeaderView,QPushButton,QMessageBox,QWidget,QHBoxLayout,QLabel
 from user_management import UserManager  # Import the UserManager class
 from sensor_management import SensorManager  # Import the SensorPage class
 from camera_management import CameraManager
@@ -30,10 +30,18 @@ class UserScreen(QMainWindow):
 
         self.active_button = self.btnStartTraining  # To store the currently active button
         self.update_button_style(self.active_button)
+
+        self.video_path = None  # Path to the video file
+        self.settings_data = {}  # Dictionary to hold settings data
+        self.video_frame = 0  # Current video frame index
+        self.is_admin = user["isAdmin"] if user else False  # Determine if user is admin
+
+        # Connect buttons to change pages in the stacked widget
         self.stackedWidget.setCurrentIndex(0)
         self.btnStartTraining.clicked.connect(lambda: self.change_page(0, self.btnStartTraining))
         self.btnUserProfile.clicked.connect(lambda: self.change_page(1, self.btnUserProfile))
         self.btnLogout.clicked.connect(self.logout)
+        
         self.btnStartTraining.clicked.connect(self.load_training_data)
         # Assume you have a QListWidget in your UI named listTestSubjects
         self.test_subject_list = self.findChild(QTreeWidget, 'listTestSubjects')
