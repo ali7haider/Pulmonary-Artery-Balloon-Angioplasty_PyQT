@@ -1,15 +1,21 @@
 import sys
 from PyQt5 import uic
-from PyQt5.QtWidgets import QMainWindow,QApplication,QTableWidgetItem,QHeaderView,QPushButton,QMessageBox,QWidget,QHBoxLayout,QLabel
+from PyQt5.QtWidgets import QMainWindow,QApplication,QTableWidgetItem,QVBoxLayout,QGridLayout,QListWidget,QHeaderView,QPushButton,QMessageBox,QWidget,QHBoxLayout,QLabel
 from user_management import UserManager  # Import the UserManager class
 from sensor_management import SensorManager  # Import the SensorPage class
 from camera_management import CameraManager
 import os
 from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem, QPushButton, QMessageBox
 import resources_rc
-from PyQt5.QtCore import Qt,QEvent
+from PyQt5.QtCore import Qt,QEvent,QSize
 from PyQt5.QtGui import QFont
 from video_player import VideoPlayer
+from datetime import datetime
+import glob
+from PyQt5.QtGui import QImage, QPixmap, QIcon
+import cv2
+from PyQt5.QtWidgets import QTreeWidgetItem,QTreeWidget
+
 class UserScreen(QMainWindow):
     def __init__(self, login_screen=None, db_manager=None, user=None):
         super(UserScreen, self).__init__()
@@ -21,17 +27,226 @@ class UserScreen(QMainWindow):
         self.user_manager = UserManager(db_manager)
         self.sensor_manager = SensorManager(self)
         self.camera_manager = CameraManager(self)
-        
+
+        self.active_button = self.btnStartTraining  # To store the currently active button
+        self.update_button_style(self.active_button)
         self.stackedWidget.setCurrentIndex(0)
-        self.btnStartTraining.clicked.connect(lambda: self.change_page(0))
-        self.btnUserProfile.clicked.connect(lambda: self.change_page(1))
+        self.btnStartTraining.clicked.connect(lambda: self.change_page(0, self.btnStartTraining))
+        self.btnUserProfile.clicked.connect(lambda: self.change_page(1, self.btnUserProfile))
         self.btnLogout.clicked.connect(self.logout)
         self.btnStartTraining.clicked.connect(self.load_training_data)
-
+        # Assume you have a QListWidget in your UI named listTestSubjects
+        self.test_subject_list = self.findChild(QTreeWidget, 'listTestSubjects')
         # Set initial row height
         self.set_table_row_height()
 
         self.load_training_data()  # Call to load training data into the table
+        # Load test subjects into left bar when user profile is accessed
+        self.btnUserProfile.clicked.connect(self.load_test_subjects)  
+        # In your UserScreen class __init__ method, after connecting the QListWidget
+        self.test_subject_list.itemClicked.connect(self.handle_item_click)
+        self.current_test_subject = None
+        self.current_test_date = None  # Initialize current test date
+    def handle_item_click(self, item):
+        # Check if the clicked item is a test category or test subject
+        if item.parent() is None:  # This means it's a test category
+            return
+        elif item.parent().parent() is not None:  # This means it's a date under a test subject
+            self.current_test_subject = item.parent()  # Save the current test subject
+            self.current_date = item  # Save the current date
+            self.load_media(item)  # Load media for the selected date
+        else:  # It's a test subject
+            self.current_test_subject = item  # Save the current test subject
+            self.load_media(item)  # Load media for the test subject, if needed
+
+    def resizeEvent(self, event):
+        if self.current_test_subject is not None and self.current_date is not None:
+            self.load_media(self.current_date)  # Reload media on resize
+        super(UserScreen, self).resizeEvent(event)
+
+    def load_media(self, item):
+        user_folder_name = f"{self.user['id']}_{self.user['username']}"
+        
+        # Determine the folder path based on the clicked item
+        if item.parent() is not None:  # Check if it's a test subject or a date
+            if item.parent().parent() is not None:  # It's a date under a test subject
+                test_category = item.parent().parent().text(0)  # Get the test category
+                test_subject = item.parent().text(0)  # Get the test subject
+                test_date = item.text(0)  # Get the test date
+                
+                # Set folder_path to the date folder directly
+                folder_path = os.path.join("userData", user_folder_name, test_category, test_subject, test_date)
+            else:  # It's a test subject
+                test_category = item.parent().text(0)  # Get the test category
+                test_subject = item.text(0)  # Get the test subject
+                folder_path = os.path.join("userData", user_folder_name, test_category, test_subject)
+        else:  # If it’s a test category
+            return  # Do nothing for now, or handle it accordingly
+
+        # Clear existing widgets in the frameImagesVideos
+        layout = self.frameImagesVideos.layout()  # Get the existing layout
+        if layout is not None:
+            while layout.count():
+                widget = layout.itemAt(0).widget()  # Get the first widget
+                layout.removeWidget(widget)  # Remove it from layout
+                widget.deleteLater()  # Delete the widget to free up memory
+        else:
+            layout = QGridLayout()
+            self.frameImagesVideos.setLayout(layout)
+
+        # Load all images and videos from the selected date folder
+        if os.path.exists(folder_path):
+            # Initialize lists to store images and videos
+            images = glob.glob(os.path.join(folder_path, "*.jpg")) + glob.glob(os.path.join(folder_path, "*.png"))
+            videos = glob.glob(os.path.join(folder_path, "*.avi"))  + glob.glob(os.path.join(folder_path, "*.mp4"))  # Add other video formats if needed
+
+            # Calculate the number of columns based on available width
+            item_width = 320  # Adjust this value as needed (image width + margin)
+            available_width = self.frameImagesVideos.width()  # Get available width of the frame
+            num_columns = available_width // item_width  # Calculate number of columns
+
+            # Initialize row and column indices
+            row, col = 0, 0
+
+            # Display images and videos
+            for media_path in images + videos:  # Combine images and videos
+                if media_path in images:
+                    # Display image
+                    img_label = QLabel()
+                    img_label.setPixmap(QPixmap(media_path).scaled(400, 300, Qt.KeepAspectRatio))  # Load the image with scaling
+                    layout.addWidget(img_label, row, col, alignment=Qt.AlignTop)  # Add the image to the grid
+                else:
+                    # Create a thumbnail for the video
+                    thumbnail = self.create_video_thumbnail(media_path)
+
+                    if thumbnail is not None:
+                        # Create a widget to hold the thumbnail and overlay
+                        video_widget = QWidget()
+                        video_layout = QVBoxLayout(video_widget)
+
+                        # Create the thumbnail label
+                        thumbnail_label = QLabel()
+                        thumbnail_label.setPixmap(thumbnail.scaled(400, 300, Qt.KeepAspectRatio))  # Scale thumbnail
+
+                        video_layout.addWidget(thumbnail_label)
+
+                        # Create the overlay label with the play icon
+                        play_icon = QPixmap(":/images/images/icons8-circled-play-100.png")  # Replace with the path to your play icon
+                        overlay_label = QPushButton()
+                        # Scale the play icon and set it on the button
+                        play_icon = play_icon.scaled(80, 80, Qt.KeepAspectRatio)  # Scale the play icon
+                        overlay_label.setIcon(QIcon(play_icon))
+                        overlay_label.setIconSize(QSize(30, 30))  # Set the icon size for the button
+
+                        overlay_label.setStyleSheet("background-color: rgba(255, 255, 255, 0.7); margin:0px 0px; padding:2px; min-height:30px;")  # Optional semi-transparent background
+                        overlay_label.clicked.connect(lambda _, path=media_path: self.play_video(path))
+
+                        # Add overlay label  on top of the thumbnail
+                        overlay_widget = QWidget()
+                        overlay_widget.setMaximumWidth(300)  # Set the maximum width for the overlay widget
+
+                        overlay_layout = QVBoxLayout(overlay_widget)
+                        overlay_layout.addWidget(thumbnail_label)
+                        overlay_layout.addWidget(overlay_label)
+                        overlay_layout.setContentsMargins(2, 2, 2, 2)  # For the main layout
+                        overlay_layout.setSpacing(1)  # For the main layout
+
+                        overlay_widget.setLayout(overlay_layout)
+                        video_layout.addWidget(overlay_widget)
+                        video_layout.setContentsMargins(0, 0, 0, 0)  # For the main layout
+                        video_layout.setSpacing(0)  # For the main layout
+
+                        layout.addWidget(video_widget, row, col)  # Add the video widget to the grid
+
+                # Update the column index
+                col += 1
+                
+                # Move to the next row if column limit is reached
+                if col >= num_columns:  
+                    col = 0  # Reset column index
+                    row += 1  # Move to the next row
+
+            # Ensure that the last row is filled correctly
+            layout.setRowStretch(row, 1)  # Stretch the last row if necessary
+        else:
+            QMessageBox.warning(self, "Folder Not Found", "No media found for the selected test subject.")
+    def play_video(self, video_path):
+        # Your code to handle video playback, using the provided video_path
+        print(f"Playing video from: {video_path}")
+        # Implement actual video playback functionality here
+
+    def create_video_thumbnail(self, video_path):
+        # Capture the video
+        cap = cv2.VideoCapture(video_path)
+
+        if not cap.isOpened():
+            return None  # Return None if video cannot be opened
+
+        # Get a frame at the 1-second mark (or any other time point)
+        cap.set(cv2.CAP_PROP_POS_MSEC, 1000)  # Move to 1 second
+
+        ret, frame = cap.read()  # Read the frame
+        cap.release()  # Release the video capture
+
+        if ret:
+            # Convert the frame from BGR to RGB
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # Create a QImage from the frame
+            height, width, _ = frame.shape
+            qimage = QImage(frame.data, width, height, width * 3, QImage.Format_RGB888)
+
+            # Convert QImage to QPixmap
+            return QPixmap.fromImage(qimage)
+        
+        return None
+
+    
+    def load_test_subjects(self):
+        # Clear existing widgets in the frameImagesVideos
+        layout = self.frameImagesVideos.layout()  # Get the existing layout
+        if layout is not None:
+            while layout.count():
+                widget = layout.itemAt(0).widget()  # Get the first widget
+                layout.removeWidget(widget)  # Remove it from layout
+                widget.deleteLater()  # Delete the widget to free up memory
+        user_folder_name = f"{self.user['id']}_{self.user['username']}"
+
+        # Create folder path for the current user
+        folder_path = os.path.join("userData", user_folder_name)
+
+        if os.path.exists(folder_path):
+            # Clear existing items in the test subject tree
+            self.test_subject_list.clear()
+
+            # Retrieve all test categories (subfolders) within the user's folder
+            for test_category in os.listdir(folder_path):
+                test_category_path = os.path.join(folder_path, test_category)
+                if os.path.isdir(test_category_path):  # Check if it's a directory
+
+                    # Create a parent item for each test category
+                    category_item = QTreeWidgetItem(self.test_subject_list)
+                    category_item.setText(0, test_category)
+
+                    # Retrieve all test subjects within each test category
+                    for test_subject in os.listdir(test_category_path):
+                        test_subject_path = os.path.join(test_category_path, test_subject)
+                        if os.path.isdir(test_subject_path):  # Check if it's a directory
+
+                            # Create a child item for each test subject
+                            subject_item = QTreeWidgetItem(category_item)
+                            subject_item.setText(0, test_subject)
+
+                            # Retrieve all dates within each test subject
+                            for test_date in os.listdir(test_subject_path):
+                                test_date_path = os.path.join(test_subject_path, test_date)
+                                if os.path.isdir(test_date_path):  # Check if it's a directory
+
+                                    # Create a sub-child item for each test date
+                                    date_item = QTreeWidgetItem(subject_item)
+                                    date_item.setText(0, test_date)
+        else:
+            QMessageBox.warning(self, "Folder Not Found", "No test categories found for the current user.")
 
     def load_training_data(self):
         try:
@@ -156,7 +371,6 @@ class UserScreen(QMainWindow):
                 self.trainingDataTable.setCellWidget(index, col, label)  # Set QLabel as cell widget
     
                 if col == 2 and len(data) > 30:  # Example threshold, adjust as needed
-                    print(len(data))
                     self.trainingDataTable.setRowHeight(index, 80)  # Adjust this height as necessary
 
             # Add MyScore details with button, and set them closer together
@@ -203,9 +417,6 @@ class UserScreen(QMainWindow):
             # Set the widget with the centered button in the table cell
             self.trainingDataTable.setCellWidget(index, 5, button_widget)
 
-
-            print(f"Row count after insertion: {self.trainingDataTable.rowCount()}")
-
         # Resize rows to fit contents
         # self.trainingDataTable.resizeRowsToContents()
         self.trainingDataTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -228,13 +439,12 @@ class UserScreen(QMainWindow):
             settings_file = None
             settings_data = {}
             info_file = os.path.join(folder_path, "test_subject_info.txt")
-            test_category='default'
             if os.path.exists(info_file):
                 # Load info data from test_subject_info.txt
                 with open(info_file, "r") as file:
                     info_content = file.read().splitlines()
                     if len(info_content) >= 3:
-                        test_category, subject, instrument = info_content[:3]
+                        self.test_category, self.subject, instrument = info_content[:3]
                         date = ""  # Date initially empty
                         score = ""  # MyScore initially empty
             # current_row = self.trainingDataTable.currentRow()
@@ -254,7 +464,7 @@ class UserScreen(QMainWindow):
                 settings_data = self.load_settings(settings_file)  # or other format parsing as needed
 
                 # Initialize and show VideoPlayer with video path and settings data
-                self.video_player = VideoPlayer(video_path, settings_data,self.user,test_category)
+                self.video_player = VideoPlayer(video_path, settings_data,self.user,self.test_category,self.subject)
                 self.video_player.show()
             else:
                 print("Video or settings file not found.")
@@ -266,8 +476,21 @@ class UserScreen(QMainWindow):
         self.login_screen.show()
         self.close()
 
-    def change_page(self, page_index):
-        self.stackedWidget.setCurrentIndex(page_index)
+    def change_page(self, index, clicked_button):
+        # Change page in the stacked widget
+        self.stackedWidget.setCurrentIndex(index)
+        
+        # Update button color
+        self.update_button_style(clicked_button)
+
+    def update_button_style(self, clicked_button):
+        # Reset the previous button to default style if one was active
+        if self.active_button:
+            self.active_button.setStyleSheet("")  # Reset to default
+        
+        # Set the clicked button to a dark color
+        clicked_button.setStyleSheet("background-color: #2F958D; color: white;")  # Dark color style
+        self.active_button = clicked_button  # Update the active button
     def set_table_row_height(self):
         if self.isMaximized():
             # Set height for maximized window

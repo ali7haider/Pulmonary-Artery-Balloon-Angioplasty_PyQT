@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>PABA Training Software</string>
+   <string>PercuTrainer</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="styleSheet">

@@ -11,14 +11,17 @@ from PyQt5.QtGui import QImage, QPixmap, QIcon
 from sensor_management import SensorManager  # Import the SensorPage class
 import resources_rc
 import threading
+from PyQt5.QtCore import QThread, pyqtSignal
 
 class VideoPlayer(QMainWindow):
-    def __init__(self, video_path, settings_data, user,test_category):
+    recording_status_changed = pyqtSignal(str)  # Signal to indicate recording status
+
+    def __init__(self, video_path, settings_data, user,test_category,test_subject):
         super(VideoPlayer, self).__init__()
         loadUi("UIs/videoScreen.ui", self)
         self.user = user
         self.test_category=test_category
-        
+        self.test_subject=test_subject
         self.video_path = video_path
         self.settings_data = settings_data
         self.video_frame = 0
@@ -56,25 +59,97 @@ class VideoPlayer(QMainWindow):
 
         self.btnPlayPause.clicked.connect(self.toggle_play_pause)
         self.btnCamera.clicked.connect(self.capture_screenshot)
+        # Connect the new signal to a method (optional)
+        self.recording_status_changed.connect(self.handle_recording_status)
+
+        # Connect button clicks to their respective methods
+        self.btnStepBackward.clicked.connect(self.step_backward)
+        self.btnStepUpward.clicked.connect(self.step_forward)
+        self.btnEnd.clicked.connect(self.stop_video)
+        self.btnZoomIn.clicked.connect(self.zoom_in_video)
+        self.btnZoomOut.clicked.connect(self.zoom_out_video)
+
+    def zoom_in_video(self):
+        print("Zoom In Video")
+
+    def zoom_out_video(self):
+        print("Zoom Out Video")
+        
+
+    def step_backward(self):
+        if not self.is_recording:
+            # Calculate frame position 2 seconds back
+            new_frame_position = max(0, self.video_frame - int(2 * self.fps))
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, new_frame_position)
+            self.video_frame = new_frame_position  # Update current frame tracker
+            self.display_message("Moved 2 seconds backward")
+        else:
+            self.display_message("Cannot move backward while recording is active")
+
+    def step_forward(self):
+        if not self.is_recording:
+            # Calculate frame position 2 seconds forward
+            new_frame_position = min(self.total_frames, self.video_frame + int(2 * self.fps))
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, new_frame_position)
+            self.video_frame = new_frame_position  # Update current frame tracker
+            self.display_message("Moved 2 seconds forward")
+        else:
+            self.display_message("Cannot move forward while recording is active")
+
+    def stop_video(self):
+        if not self.is_recording:
+            self.timer.stop()
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Reset video to the start
+            self.video_frame = 0  # Reset frame counter
+            self.videoPrograssBar.setValue(0)
+            self.display_message("Video stopped and reset to the beginning")
+            self.btnPlayPause.setIcon(QIcon(":/images/images/icons8-play-25.png"))
+            self.is_playing=False
+
+        else:
+            self.display_message("Cannot stop the video while recording is active")
     def toggle_recording(self):
         if not self.is_recording:
             # Start recording
             self.is_recording = True
-            self.recording_thread = threading.Thread(target=self.record_video)
+            user_folder_name = f"{self.user['id']}_{self.user['username']}"
+            self.recording_thread = RecordingThread(
+                self.video_path, self.video_frame, user_folder_name, self.fps, 
+                int(self.cap.get(3)), int(self.cap.get(4)),  # Pass width and height
+                self.test_category,self.test_subject
+            )
+            self.recording_thread.recording_saved.connect(self.on_recording_saved)  # Connect the signal
             self.recording_thread.start()
-            self.btnRecord.setStyleSheet("margin: 5px;")  # Add margin to indicate recording
-            self.display_message("Recording started")
+            
+            # Emit signal for recording start
+            self.recording_status_changed.emit("Recording started")
+            self.btnRecord.setStyleSheet("margin: 5px;")  # Start recording indication
         else:
             # Stop recording
             self.is_recording = False
-            self.recording_thread.join()  # Wait for the thread to finish
-            self.btnRecord.setStyleSheet("margin: 0;")  # Reset to default
+            if self.recording_thread.isRunning():
+                self.recording_thread.stop()
+                self.recording_thread.wait()
+            
+            # Emit signal for recording stop
+            self.recording_status_changed.emit("Recording stopped")
+            self.btnRecord.setStyleSheet("margin: 0;")  # End recording indication
             self.display_message("Recording stopped")
-    
+
+    def on_recording_saved(self, message):
+        """Handle the recording saved signal from the thread."""
+        self.is_recording = False  # Update the recording status
+        self.btnRecord.setStyleSheet("margin: 0;")  # End recording indication
+
+        self.display_message(message)  # Display message with saved recording info
+
+    def handle_recording_status(self, status_message):
+        # Handle the recording status change (e.g., display a message)
+        self.display_message(status_message)
     def record_video(self):
         user_folder_name = f"{self.user['id']}_{self.user['username']}"
         date_today = datetime.now().strftime("%Y-%m-%d")
-        folder_path = os.path.join("userData", user_folder_name, self.test_category, date_today)
+        folder_path = os.path.join("userData", user_folder_name, self.test_category, self.test_subject, date_today)
         os.makedirs(folder_path, exist_ok=True)
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
@@ -180,14 +255,18 @@ class VideoPlayer(QMainWindow):
             QMessageBox.warning(self, "Error", "Failed to capture frame.")
             return
 
-        # Define paths based on user info and current date
+        # Define paths based on user info, test category, test subject, and current date
         user_folder_name = f"{self.user['id']}_{self.user['username']}"
-        test_category = self.test_category # Example category
+        sanitized_user_folder = user_folder_name.strip()
+        sanitized_test_category = self.test_category.strip()
+        sanitized_test_subject = self.test_subject.strip()
         date_today = datetime.now().strftime("%Y-%m-%d")
 
-        # Create folder path
-        folder_path = os.path.join("userData", user_folder_name, test_category, date_today)
-        os.makedirs(folder_path, exist_ok=True)
+        # Create folder path with test_subject as a subfolder
+        folder_path = os.path.join("userData", sanitized_user_folder, sanitized_test_category, sanitized_test_subject, date_today)
+        os.makedirs(folder_path, exist_ok=True)  # This will create the full path if it doesn't exist
+
+        # Generate a unique timestamp for the image file name
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Save the frame as an image file
@@ -200,3 +279,48 @@ class VideoPlayer(QMainWindow):
             self.cap.release()
         cv2.destroyAllWindows()
         event.accept()
+class RecordingThread(QThread):
+    recording_saved = pyqtSignal(str)  # Signal to emit when recording is done
+
+    def __init__(self, video_path, frame_start, user_folder, fps, width, height, test_category,test_subject):
+        super().__init__()
+        self.video_path = video_path
+        self.frame_start = frame_start
+        self.user_folder = user_folder
+        self.fps = fps
+        self.width = width  # Store width
+        self.height = height  # Store height
+        self.test_category = test_category
+        self.test_subject=test_subject
+        self.is_recording = True
+
+    def run(self):
+        date_today = datetime.now().strftime("%Y-%m-%d")
+        # Strip whitespace from user folder and test category names to prevent issues
+        sanitized_user_folder = self.user_folder.strip()
+        sanitized_test_category = self.test_category.strip()
+        sanitized_test_subject = self.test_subject.strip()
+        folder_path = os.path.join("userData", sanitized_user_folder, sanitized_test_category,sanitized_test_subject, date_today)
+        os.makedirs(folder_path, exist_ok=True)
+        
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        output_path = os.path.join(folder_path, f"recorded_{timestamp}.avi")
+        fourcc = cv2.VideoWriter_fourcc(*"XVID")
+        writer = cv2.VideoWriter(output_path, fourcc, self.fps, (self.width, self.height))
+
+        cap_recording = cv2.VideoCapture(self.video_path)
+        cap_recording.set(cv2.CAP_PROP_POS_FRAMES, self.frame_start)
+
+        while self.is_recording and cap_recording.isOpened():
+            ret, frame = cap_recording.read()
+            if not ret:
+                break
+            writer.write(frame)
+            time.sleep(1 / self.fps)
+
+        cap_recording.release()
+        writer.release()
+        self.recording_saved.emit(f"Recording Saved: recorded_{timestamp}.avi")  # Emit signal with path
+
+    def stop(self):
+        self.is_recording = False

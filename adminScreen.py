@@ -16,8 +16,8 @@ class AdminScreen(QMainWindow):
         self.user_manager = UserManager(db_manager)  # Initialize UserManager
         self.sensor_manager = SensorManager(self)  # Instantiate the sensor page logic
         self.camera_manager = CameraManager(self)  # Instantiate the camera manager
-
-
+        self.active_button = self.btnSensorManagement  # To store the currently active button
+        self.update_button_style(self.active_button)
         self.video_path = None  # Path to the video file
         self.settings_data = {}  # Dictionary to hold settings data
         self.video_frame = 0  # Current video frame index
@@ -26,11 +26,13 @@ class AdminScreen(QMainWindow):
         self.stackedWidget.setCurrentIndex(0)  # Assuming stackedWidget is the object name in .ui file
 
         # Connect buttons to change pages in the stacked widget
-        self.btnSensorManagement.clicked.connect(lambda: self.change_page(0))  # Button to show page 1
-        self.btnCameraManagement.clicked.connect(lambda: self.change_page(1))  # Button to show page 2
-        self.btnUserManagement.clicked.connect(lambda: self.change_page(2))  # Button to show page 3
-        self.btnStartTraining.clicked.connect(lambda: self.change_page(3))  # Button to show page 3
-        self.btnUserProfile.clicked.connect(lambda: self.change_page(4))  # Button to show page 3
+         # Connect buttons to change pages in the stacked widget
+        self.btnSensorManagement.clicked.connect(lambda: self.change_page(0, self.btnSensorManagement))
+        self.btnCameraManagement.clicked.connect(lambda: self.change_page(1, self.btnCameraManagement))
+        self.btnUserManagement.clicked.connect(lambda: self.change_page(2, self.btnUserManagement))
+        self.btnStartTraining.clicked.connect(lambda: self.change_page(3, self.btnStartTraining))
+        self.btnUserProfile.clicked.connect(lambda: self.change_page(4, self.btnUserProfile))
+
         # Connect logout button click event to the logout function
         self.btnLogout.clicked.connect(self.logout)
 
@@ -211,10 +213,21 @@ class AdminScreen(QMainWindow):
         self.isAdminCheckBox.setChecked(False)  # Uncheck the admin checkbox
 
     
-    def change_page(self, page_index):
-        """Change the current page of the QStackedWidget."""
-        self.stackedWidget.setCurrentIndex(page_index)  # Assuming stackedWidget is the object name in .ui file
+    def change_page(self, index, clicked_button):
+        # Change page in the stacked widget
+        self.stackedWidget.setCurrentIndex(index)
+        
+        # Update button color
+        self.update_button_style(clicked_button)
 
+    def update_button_style(self, clicked_button):
+        # Reset the previous button to default style if one was active
+        if self.active_button:
+            self.active_button.setStyleSheet("")  # Reset to default
+        
+        # Set the clicked button to a dark color
+        clicked_button.setStyleSheet("background-color: #2F958D; color: white;")  # Dark color style
+        self.active_button = clicked_button  # Update the active button
     
     def logout(self):
         self.login_screen.show()  # Show the login screen again

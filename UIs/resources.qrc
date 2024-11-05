@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="images">
+    <file>images/icons8-zoom-in-25.png</file>
+    <file>images/icons8-zoom-out-25.png</file>
+    <file>images/icons8-circled-play-100.png</file>
     <file>images/cil-camera.png</file>
     <file>images/cil-check-alt.png</file>
     <file>images/cil-circle.png</file>

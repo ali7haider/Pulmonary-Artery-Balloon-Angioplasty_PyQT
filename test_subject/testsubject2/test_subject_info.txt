@@ -1,3 +1,4 @@
 lung
-Left lung Pulmonary Artery Catheterization Surgery
-2mm Vascular Catheter,1mm Interventional Guidewire, Pulmonary Artery Balloon Dilatation Catheter
+Right Lung Pulmonary Artery Catheterization Surgery
+2.5mm Vascular Catheter, 1.3mm Interventional Guidewire, Pulmonary Artery Balloon Dilatation Catheter
+
