@@ -1,22 +1,22 @@
 import sys
+import os
+import glob
+from datetime import datetime
 from PyQt5 import uic
-from PyQt5.QtWidgets import QMainWindow,QApplication,QTreeWidgetItem,QTreeWidget,QTableWidgetItem,QVBoxLayout,QGridLayout,QListWidget,QHeaderView,QPushButton,QMessageBox,QWidget,QHBoxLayout,QLabel
+from PyQt5.QtCore import Qt, QEvent, QSize
+from PyQt5.QtGui import QFont, QImage, QPixmap, QIcon
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QDialog, QVBoxLayout, QHBoxLayout,
+    QTreeWidget, QTreeWidgetItem, QTableWidget, QTableWidgetItem,
+    QLabel, QPushButton, QTextEdit, QMessageBox, QWidget, QHeaderView,QGridLayout
+)
+import resources_rc
 from user_management import UserManager  # Import the UserManager class
 from sensor_management import SensorManager  # Import the SensorPage class
 from camera_management import CameraManager
-import os
-from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem, QPushButton, QMessageBox
-import resources_rc
-from PyQt5.QtCore import Qt,QEvent,QSize
-from PyQt5.QtGui import QFont
 from video_player import VideoPlayer
-from datetime import datetime
-import glob
-from PyQt5.QtGui import QImage, QPixmap, QIcon
 import cv2
-from PyQt5.QtWidgets import QTreeWidgetItem,QTreeWidget
-from PyQt5.QtWidgets import QDialog, QTableWidget, QTableWidgetItem, QVBoxLayout, QMessageBox, QLabel, QPushButton, QHBoxLayout, QTextEdit
-from PyQt5.QtCore import Qt
+
 
 class UserScreen(QMainWindow):
     def __init__(self, login_screen=None, db_manager=None, user=None):
