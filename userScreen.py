@@ -15,6 +15,9 @@ import glob
 from PyQt5.QtGui import QImage, QPixmap, QIcon
 import cv2
 from PyQt5.QtWidgets import QTreeWidgetItem,QTreeWidget
+from PyQt5.QtWidgets import QDialog, QTableWidget, QTableWidgetItem, QVBoxLayout, QMessageBox, QLabel, QPushButton, QHBoxLayout, QTextEdit
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 
 class UserScreen(QMainWindow):
     def __init__(self, login_screen=None, db_manager=None, user=None):
@@ -353,16 +356,73 @@ class UserScreen(QMainWindow):
                 return settings_content
         return None
 
+    def get_latest_score_for_user(self,test_category, subject):
+        """
+        Constructs the folder path dynamically and retrieves the latest score and date for a specific Test Category and Subject.
+
+        Args:
+            user_id (str): User ID.
+            username (str): Username.
+            test_category (str): Test Category.
+            subject (str): Subject.
+
+        Returns:
+            tuple: (latest_score, latest_date) or (None, None) if no data is found.
+        """
+        latest_score = None
+        latest_date = None
+
+        try:
+            # Define paths based on user info, test category, test subject, and current date
+            user_folder_name = f"{self.user['id']}_{self.user['username']}"
+            sanitized_user_folder = user_folder_name.strip()
+            sanitized_test_category = test_category.strip()
+            sanitized_test_subject = subject.strip()
+
+            # Create folder path with test_subject as a subfolder
+            subject_path = os.path.join("userData", sanitized_user_folder, sanitized_test_category, sanitized_test_subject)
+            # Construct the base path using user ID and username
+
+            if not os.path.isdir(subject_path):
+                print(f"Subject path not found: {subject_path}")
+                return None, None
+
+            # Iterate over date folders in the subject directory
+            for date_folder in os.listdir(subject_path):
+                date_path = os.path.join(subject_path, date_folder)
+                score_file = os.path.join(date_path, "score.txt")
+
+                if not os.path.isfile(score_file):
+                    continue
+
+                try:
+                    # Parse date folder name
+                    test_date = datetime.strptime(date_folder, "%Y-%m-%d")
+                    if latest_date is None or test_date > latest_date:
+                        # Read score.txt and get the total score (second line)
+                        with open(score_file, 'r') as file:
+                            lines = [line.strip() for line in file.readlines()]
+                            total_score = int(lines[1])  # Second line is the total score
+                            latest_score = total_score
+                            latest_date = test_date
+                except ValueError:
+                    print(f"Skipping invalid date folder: {date_folder}")
+
+        except Exception as e:
+            print(f"Error accessing folder for user {self.user['username']}: {e}")
+
+        return latest_score, latest_date.strftime("%Y-%m-%d") if latest_date else None
     def populate_training_table(self, folder_data):
         """Populates the training table with folder data and adds buttons for MyScore and Start Training."""
 
         # Loop through each folder data and populate the table
         for index, (test_category, subject, instrument, date, score, folder_path) in enumerate(folder_data):
             self.trainingDataTable.insertRow(index)
-            print(f"Adding row {index} with test_category: {test_category}")
-
+            # Retrieve the latest score and date dynamically
+            latest_score, latest_date = self.get_latest_score_for_user(test_category, subject)
+            print(latest_date,latest_score)
             # Populate each column with folder data and disable editing, using QLabel for wrapping
-            for col, data in enumerate([test_category, subject, instrument, "31-10-2024"]):
+            for col, data in enumerate([test_category, subject, instrument, latest_date]):
                 label = QLabel(data)
                 label.setStyleSheet("""
                 QLabel {
@@ -384,7 +444,7 @@ class UserScreen(QMainWindow):
             # Add MyScore details with button, and set them closer together
             score_widget = QWidget()
             score_layout = QHBoxLayout(score_widget)
-            score_label = QLabel("0")
+            score_label = QLabel(str(latest_score))
             score_button = QPushButton("Details")
             score_button.setCursor(Qt.PointingHandCursor)
             score_button.setStyleSheet("""
@@ -394,7 +454,7 @@ class UserScreen(QMainWindow):
                 }
                
             """)
-            score_button.clicked.connect(lambda _, path=folder_path: self.show_score_details(path))
+            score_button.clicked.connect(lambda _, test=test_category, subj=subject: self.show_score_details(test, subj))
 
             # Configure layout and widget margins for closeness
             score_layout.addWidget(score_label)
@@ -433,13 +493,170 @@ class UserScreen(QMainWindow):
         self.trainingDataTable.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
         self.trainingDataTable.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)
 
-    def show_score_details(self, folder_path):
-        # Implement logic to display detailed score information
-        pass
+    def show_score_details(self, test_category, test_subject):
+        """
+        Display all available scores for the given test category and subject in a new table.
 
-    def start_training(self, folder_path):
-        # Load subject video and settings.txt, then initiate training steps
-        pass
+        Args:
+            test_category (str): The test category to display scores for.
+            test_subject (str): The subject within the test category.
+        """
+        # Create a dialog or window to display the scores
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Scores for {test_category} - {test_subject}")
+        dialog.resize(600, 400)
+
+        layout = QVBoxLayout(dialog)
+
+        # Create a table to display the scores
+        score_table = QTableWidget(dialog)
+        score_table.setColumnCount(3)
+        score_table.setHorizontalHeaderLabels(["Date", "Score", "View"])
+        score_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        score_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        layout.addWidget(score_table)
+
+        # Get user folder and construct paths
+        user_folder_name = f"{self.user['id']}_{self.user['username']}"
+        subject_path = os.path.join("userData", user_folder_name, test_category.strip(), test_subject.strip())
+
+        if not os.path.isdir(subject_path):
+            QMessageBox.warning(self, "No Data", f"No data found for {test_category} - {test_subject}")
+            return
+
+        # Populate the table with scores
+        row_index = 0
+        for date_folder in os.listdir(subject_path):
+            date_path = os.path.join(subject_path, date_folder)
+            score_file = os.path.join(date_path, "score.txt")
+
+            if not os.path.isfile(score_file):
+                continue
+
+            try:
+                # Read score details
+                with open(score_file, 'r') as file:
+                    lines = [line.strip() for line in file.readlines()]
+                    total_score = int(lines[1])  # Second line is the total score
+                    test_date = datetime.strptime(date_folder, "%Y-%m-%d").strftime("%d-%m-%Y")
+
+                    # Add a new row
+                    score_table.insertRow(row_index)
+
+                    # Add Date column
+                    date_label = QLabel(test_date)
+                    date_label.setAlignment(Qt.AlignCenter)
+                    score_table.setCellWidget(row_index, 0, date_label)
+
+                    # Add Score column
+                    score_label = QLabel(str(total_score))
+                    score_label.setAlignment(Qt.AlignCenter)
+                    score_table.setCellWidget(row_index, 1, score_label)
+
+                    # Add View button
+                    btn_view = QPushButton("View")
+                    btn_view.setStyleSheet('''QPushButton {
+    color: white;                      /* Text color */
+    border-radius: 4px;                /* Rounded corners */
+    padding: 5px 8px;                 /* Padding inside button */
+font: 10pt "Bahnschrift SemiCondensed";
+    background-color: #48ACAC;         /* Slightly darker color on hover */
+       /* Border with a slightly darker shade */
+}
+
+QPushButton:hover {
+    background-color: #2F958D;         /* Slightly darker color on hover */
+}
+
+QPushButton:pressed {
+       /* Darken the border further when pressed */
+    padding-left: 14px;                /* Slight movement for press effect */
+    padding-top: 6px;                  /* Slight movement for press effect */
+}''')
+                    btn_view.setCursor(Qt.PointingHandCursor)
+                    btn_view.clicked.connect(lambda _, date_path=date_path: self.view_date_score(date_path))
+                    view_widget = QWidget()
+                    view_layout = QHBoxLayout(view_widget)
+                    view_layout.addWidget(btn_view)
+                    view_layout.setAlignment(Qt.AlignCenter)
+                    view_layout.setContentsMargins(0, 0, 0, 0)
+                    score_table.setCellWidget(row_index, 2, view_widget)
+
+                    row_index += 1
+
+            except Exception as e:
+                print(f"Error reading score file {score_file}: {e}")
+
+        # Show the dialog
+        dialog.exec_()
+
+
+    def view_date_score(self, date_path):
+        """
+        Display the score details for a specific date in a new dialog.
+
+        Args:
+            date_path (str): The path to the folder containing the score.txt file for the selected date.
+        """
+        # Create a dialog to display the score details
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Score Details")
+        dialog.resize(600, 400)
+
+        layout = QVBoxLayout(dialog)
+
+        # Create a table to display the score details
+        detail_table = QTableWidget(dialog)
+        detail_table.setColumnCount(4)
+        detail_table.setHorizontalHeaderLabels(["Step", "Weight", "Score", "Reason"])
+        detail_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        detail_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        detail_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        detail_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        layout.addWidget(detail_table)
+
+        score_file = os.path.join(date_path, "score.txt")
+
+        if not os.path.isfile(score_file):
+            QMessageBox.warning(self, "File Not Found", f"No score file found at {score_file}")
+            return
+
+        try:
+            # Read the score.txt file
+            with open(score_file, 'r') as file:
+                lines = [line.strip() for line in file.readlines()]
+
+                # First line: Number of steps
+                num_steps = int(lines[0])
+                # Second line: Total score (not used in detail view)
+                total_score = int(lines[1])
+
+                # Populate the table with step details
+                for row_index in range(num_steps):
+                    # Parse step details
+                    step_details = lines[2 + row_index].split(" ", 3)
+                    step_idx = step_details[0]
+                    weight = step_details[1]
+                    score = step_details[2]
+                    reason = step_details[3]
+
+                    # Add a new row
+                    detail_table.insertRow(row_index)
+
+                    # Populate each column
+                    detail_table.setItem(row_index, 0, QTableWidgetItem(step_idx))
+                    detail_table.setItem(row_index, 1, QTableWidgetItem(weight))
+                    detail_table.setItem(row_index, 2, QTableWidgetItem(score))
+                    detail_table.setItem(row_index, 3, QTableWidgetItem(reason))
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to load score details: {e}")
+            print(f"Error reading score file: {score_file}. Exception: {e}")
+            return
+
+        # Show the dialog
+        dialog.exec_()
+    
 
     def start_training(self, folder_path):
         try:

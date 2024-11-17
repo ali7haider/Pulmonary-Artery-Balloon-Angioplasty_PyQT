@@ -1,0 +1,7 @@
+5
+80
+1 10 65 inserting too fast than the required
+2 20 80 good but a little bit later than required
+3 10 100 excellent work
+4 20 50 not qualifed for insertion, not reach the depth we want
+5 40 90 good work, speed too fast
