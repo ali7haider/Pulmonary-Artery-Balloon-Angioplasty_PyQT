@@ -17,7 +17,6 @@ import cv2
 from PyQt5.QtWidgets import QTreeWidgetItem,QTreeWidget
 from PyQt5.QtWidgets import QDialog, QTableWidget, QTableWidgetItem, QVBoxLayout, QMessageBox, QLabel, QPushButton, QHBoxLayout, QTextEdit
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
 
 class UserScreen(QMainWindow):
     def __init__(self, login_screen=None, db_manager=None, user=None):
