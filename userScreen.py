@@ -4,11 +4,11 @@ import glob
 from datetime import datetime
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QEvent, QSize
-from PyQt5.QtGui import QFont, QImage, QPixmap, QIcon
+from PyQt5.QtGui import QImage, QPixmap, QIcon
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QDialog, QVBoxLayout, QHBoxLayout,
     QTreeWidget, QTreeWidgetItem, QTableWidget, QTableWidgetItem,
-    QLabel, QPushButton, QTextEdit, QMessageBox, QWidget, QHeaderView,QGridLayout
+    QLabel, QPushButton, QMessageBox, QWidget, QHeaderView,QGridLayout
 )
 import resources_rc
 from user_management import UserManager  # Import the UserManager class

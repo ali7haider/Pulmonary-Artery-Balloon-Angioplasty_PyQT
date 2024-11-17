@@ -9,7 +9,7 @@ from PyQt5.QtGui import QIcon, QFont, QImage, QPixmap
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QDialog, QVBoxLayout, QHBoxLayout,
     QGridLayout, QTreeWidget, QTreeWidgetItem, QTableWidget, QTableWidgetItem,
-    QListWidget, QLabel, QPushButton, QTextEdit, QMessageBox, QWidget, QHeaderView
+    QLabel, QPushButton, QMessageBox, QWidget, QHeaderView
 )
 
 import resources_rc
