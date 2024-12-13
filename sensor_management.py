@@ -1,15 +1,12 @@
-import numpy as np
 import time
 import serial
-from scipy.integrate import simps
 import matplotlib.pyplot as plt
 from PyQt5.QtGui import QPixmap
 import os
 import threading
-from threading import Thread, Lock
+from threading import Lock
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QLabel, QVBoxLayout, QWidget
 class SensorManager:
     def __init__(self, parent):
         self.parent = parent

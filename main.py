@@ -1,6 +1,5 @@
 import sys
 from PyQt5 import QtWidgets, uic
-import sqlite3
 from databaseManager import DatabaseManager
 import resources_rc
 class LoginScreen(QtWidgets.QMainWindow):
