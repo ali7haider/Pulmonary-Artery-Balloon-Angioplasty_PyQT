@@ -25,7 +25,6 @@ padding-left:3px;
 }
 QLabel{
 font: 12pt &quot;Bahnschrift SemiCondensed&quot;;
-
 }</string>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -158,18 +157,15 @@ background-color: #48ACAC;
                </property>
                <property name="font">
                 <font>
-                 <family>Bahnschrift SemiCondensed</family>
-                 <pointsize>-1</pointsize>
+                 <family>MS Shell Dlg 2</family>
+                 <pointsize>8</pointsize>
                  <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
                </property>
                <property name="styleSheet">
-                <string notr="true">#QLabel
-{
-color:white;
-}</string>
+                <string notr="true">font: 8pt &quot;MS Shell Dlg 2&quot;;</string>
                </property>
                <property name="text">
                 <string/>
@@ -214,17 +210,14 @@ color:white;
                <property name="font">
                 <font>
                  <family>Bahnschrift SemiCondensed</family>
-                 <pointsize>-1</pointsize>
+                 <pointsize>25</pointsize>
                  <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
                </property>
                <property name="styleSheet">
-                <string notr="true">#QLabel
-{
-color:white;
-}</string>
+                <string notr="true">font: 25pt ;</string>
                </property>
                <property name="text">
                 <string>Welcome To 
@@ -298,14 +291,14 @@ color:white;
                <property name="font">
                 <font>
                  <family>Bahnschrift SemiCondensed</family>
-                 <pointsize>-1</pointsize>
+                 <pointsize>25</pointsize>
                  <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
                </property>
                <property name="styleSheet">
-                <string notr="true">color:rgb(108, 108, 108);</string>
+                <string notr="true">font: 25pt ;color:rgb(108, 108, 108);</string>
                </property>
                <property name="text">
                 <string>Login To Continue</string>

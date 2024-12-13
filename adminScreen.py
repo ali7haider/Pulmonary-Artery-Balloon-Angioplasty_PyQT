@@ -53,19 +53,7 @@ class AdminScreen(QMainWindow):
          # Connect buttons for adding a user
         self.btnAddNewUser.clicked.connect(self.add_user)  # Connect the add user button click event
 
-        self.btnUserManagement.clicked.connect(self.load_user_data_from_database)  # Button to show page 3
-
-
-        # Connect buttons for sensor management
-        self.btnConnectSensor.clicked.connect(lambda: self.sensor_manager.connect_to_sensor(self.txtPortNum.text()))
-        self.btnResetSensor.clicked.connect(self.sensor_manager.reset_all)
-        self.btnTestPressure.clicked.connect(self.sensor_manager.test_pressure)  # Example sensor type
-        self.btnCheckXrayOpen.clicked.connect(self.sensor_manager.test_xray_on)  # Example sensor type
-        self.btnCheckXrayClose.clicked.connect(self.sensor_manager.test_xray_off)  # Example sensor type
-        self.btnDisplayBodyPos.clicked.connect(self.sensor_manager.show_position)  # Example sensor type
-        self.btnEvaluatePressure.clicked.connect(self.sensor_manager.evaluate_pressure)  # Example sensor type
-        self.sensor_manager.update_pressure_plot()
-
+        self.btnUserManagement.clicked.connect(self.load_user_data_from_database)  # Button to show page 3        
 
         # Connect buttons for camera management
         self.btnConnectCamera.clicked.connect(self.camera_manager.connect_camera)
