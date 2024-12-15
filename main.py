@@ -2,6 +2,9 @@ import sys
 from PyQt5 import QtWidgets, uic
 from databaseManager import DatabaseManager
 import resources_rc
+import os
+os.environ["QT_LOGGING_RULES"] = "qt.qpa.fonts.warning=false"
+
 class LoginScreen(QtWidgets.QMainWindow):
     def __init__(self):
         super(LoginScreen, self).__init__()
@@ -9,8 +12,7 @@ class LoginScreen(QtWidgets.QMainWindow):
         self.db_manager = DatabaseManager("data.db")  # Initialize DatabaseManager
         self.db_manager.create_table()  # Ensure table is created
         # Insert a new user
-        if not self.db_manager.insert_user("admin", "password", isAdmin=1, isActive=1):
-            print("Failed to insert user: Username already exists.")        # Connect login button click event to the login function
+        self.db_manager.insert_user("admin", "password", isAdmin=1, isActive=1)       # Connect login button click event to the login function
         self.btnLogIn.clicked.connect(self.check_credentials)
     
     def check_credentials(self):

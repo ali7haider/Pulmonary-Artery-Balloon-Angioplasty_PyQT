@@ -50,7 +50,6 @@ class DatabaseManager:
         try:
             # First, check if the username already exists
             if self.check_username_exists(username):
-                print(f"Error: Username '{username}' already exists.")
                 return False  # Return False indicating that the user was not inserted
 
             # Insert a new user into the database
