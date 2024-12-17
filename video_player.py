@@ -16,7 +16,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 class VideoPlayer(QMainWindow):
     recording_status_changed = pyqtSignal(str)  # Signal to indicate recording status
 
-    def __init__(self, video_path, settings_data, user,test_category,test_subject):
+    def __init__(self, video_path, settings_data, user,test_category,test_subject,sensor_manager):
         super(VideoPlayer, self).__init__()
         loadUi("UIs/videoScreen.ui", self)
         self.user = user
@@ -33,7 +33,7 @@ class VideoPlayer(QMainWindow):
         self.recording_frame_count = 0
         
         # Initialize SensorManager
-        self.sensor_manager = SensorManager(self)
+        self.sensor_manager = sensor_manager
         
         # Set up video display on lblVideo
         self.lblVideo.setAlignment(Qt.AlignCenter)

@@ -64,6 +64,13 @@ class AdminScreen(QMainWindow):
         self.btnInsertWireMonitor.clicked.connect(self.camera_manager.update_frame)
         self.btnInsertBallonMonitor.clicked.connect(self.camera_manager.update_frame)
 
+        self.connect_button.clicked.connect(self.sensor_manager.connect_to_sensor)
+        # self.parent.btnResetSensor.clicked.connect(self.reset_all)
+        self.play_button_keyboard.clicked.connect(self.sensor_manager.test_keyboard)  # Example sensor type
+        self.play_button_pressure.clicked.connect(self.sensor_manager.test_pressure)  # Example sensor type
+        self.play_button_rotate.clicked.connect(self.sensor_manager.test_rotate)  # Example sensor type
+        self.play_button_flow.clicked.connect(self.sensor_manager.test_flow)  # Example sensor type
+
         self.btnStartTraining.clicked.connect(self.load_training_data)
         # Assume you have a QListWidget in your UI named listTestSubjects
         self.test_subject_list = self.findChild(QTreeWidget, 'listTestSubjects')
@@ -708,7 +715,7 @@ QPushButton:pressed {
                 settings_data = self.load_settings(settings_file)  # or other format parsing as needed
 
                 # Initialize and show VideoPlayer with video path and settings data
-                self.video_player = VideoPlayer(video_path, settings_data,self.user,self.test_category,self.subject)
+                self.video_player = VideoPlayer(video_path, settings_data,self.user,self.test_category,self.subject,self.sensor_manager)
                 self.video_player.show()
             else:
                 print("Video or settings file not found.")

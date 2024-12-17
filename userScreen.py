@@ -688,7 +688,7 @@ QPushButton:pressed {
                 settings_data = self.load_settings(settings_file)  # or other format parsing as needed
 
                 # Initialize and show VideoPlayer with video path and settings data
-                self.video_player = VideoPlayer(video_path, settings_data,self.user,self.test_category,self.subject)
+                self.video_player = VideoPlayer(video_path, settings_data,self.user,self.test_category,self.subject,self.sensor_manager)
                 self.video_player.show()
             else:
                 print("Video or settings file not found.")

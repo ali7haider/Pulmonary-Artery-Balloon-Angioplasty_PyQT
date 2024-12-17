@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1107</width>
-    <height>781</height>
+    <width>1194</width>
+    <height>765</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -860,24 +860,27 @@ font: 14pt ;
                      <number>0</number>
                     </property>
                     <property name="leftMargin">
-                     <number>0</number>
+                     <number>11</number>
                     </property>
                     <property name="topMargin">
-                     <number>0</number>
+                     <number>11</number>
                     </property>
                     <property name="rightMargin">
-                     <number>0</number>
+                     <number>11</number>
                     </property>
                     <property name="bottomMargin">
-                     <number>0</number>
+                     <number>11</number>
                     </property>
                     <item>
                      <widget class="QLabel" name="lblCamera">
                       <property name="maximumSize">
                        <size>
                         <width>16777215</width>
-                        <height>750</height>
+                        <height>16777215</height>
                        </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true"/>
                       </property>
                       <property name="text">
                        <string/>
@@ -1550,8 +1553,8 @@ color:red;</string>
                            <rect>
                             <x>0</x>
                             <y>0</y>
-                            <width>543</width>
-                            <height>697</height>
+                            <width>630</width>
+                            <height>681</height>
                            </rect>
                           </property>
                           <layout class="QVBoxLayout" name="verticalLayout_22">

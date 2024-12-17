@@ -85,20 +85,18 @@ class SensorManager:
 
         # Display the figure
         self.canvas.draw()
-        pixmap = self.canvas.grab()
-        self.lblPressureGraph.setPixmap(pixmap)
-        self.parent.connect_button.clicked.connect(self.connect_to_sensor)
-        # self.parent.btnResetSensor.clicked.connect(self.reset_all)
-        self.parent.play_button_keyboard.clicked.connect(self.test_keyboard)  # Example sensor type
-        self.parent.play_button_pressure.clicked.connect(self.test_pressure)  # Example sensor type
-        self.parent.play_button_rotate.clicked.connect(self.test_rotate)  # Example sensor type
-        self.parent.play_button_flow.clicked.connect(self.test_flow)  # Example sensor type
+        if hasattr(self.parent, 'lblPressureGraph') and self.parent.lblPressureGraph:
+            pixmap = self.canvas.grab()
+            self.parent.lblPressureGraph.setPixmap(pixmap)
+        
         # self.parent.btnEvaluatePressure.clicked.connect(self.evaluate_pressure)  # Example sensor type
         # self.update_pressure_plot()
     def __getattr__(self, name):
         """Delegate attribute access to the UI instance if not found in ConfigSystem."""
         return getattr(self.parent, name)
 
+    def start_sensor_reading(self, sensor_type, sensor_time):
+        pass
     def connect_to_sensor(self):
         self.serial_port_1, self.serial_port_2 = self.port_entry_1.text(), self.port_entry_2.text()
 
